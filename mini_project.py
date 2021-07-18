@@ -3,7 +3,7 @@ import pprint
 
 products = []
 couriers = []
-orders = {"orders": []}
+orders = {"orders": {}}
 
 try:
     with open('products.txt') as product_list:
@@ -55,6 +55,7 @@ def menu(category):
         print(f"{str(key)}: {str(value)}")
 
     while True:
+        print()
         try:
             with open(file, "w") as entries:
                 for item in item_list:
@@ -69,13 +70,11 @@ def menu(category):
             main_menu()
 
         elif option == sub_menu.get("View Couriers", -0) | option == sub_menu.get("View Products", -0):
-            print()
             for item in item_list:
                 print(item)
             continue
 
         elif option == sub_menu.get("Add New Courier", -0) | option == sub_menu.get("Add New Product", -0):
-            print()
             item_list.append(input("Enter Name: "))
             continue
 
@@ -87,7 +86,6 @@ def menu(category):
             continue
 
         elif option == sub_menu.get("Delete Courier", -0) or option == sub_menu.get("Delete Product", -0):
-            print()
             for item in item_list:
                 print(f"{item}: {item_list.index(item)}")
             delete_index = (map(int, input("\nChoose an Item to Delete\nFor Multiple Items Use a Comma: ").split(",")))
@@ -113,7 +111,7 @@ def menu(category):
             new_order[orderid]["courier"] = couriers[int(input("\nSelect Courier: "))]
             new_order[orderid]["status"] = "Preparing"
 
-            orders["orders"].append(new_order)
+            orders["orders"].update(new_order)
 
             continue
             
@@ -122,10 +120,11 @@ def menu(category):
             
         elif option == sub_menu["Update Order Status"]:
             for order in orders["orders"]:
-                print("Order ID: ", order["order_id"])
+                print("Item ID:", order, "Status:", orders["orders"][order]["status"])
+                
+            update_index = input("\nChoose an Item to Update: ")
+            orders["orders"][update_index]["status"] = input("\nEnter New Status: ")
             
-            print()
-
         else:
             print("\nInvalid input, try again!")
             continue
