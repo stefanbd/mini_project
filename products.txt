@@ -2,3 +2,28 @@ Latte
 Coffee
 Tea
 Mocha
+{
+"orders": {
+"customer_name": "1",
+"customer_address": "1",
+"customer_phone": "1",
+"courier": "Eve",
+"status": "Preparing"
+},
+"customer_name": "Stefan",
+"customer_address": "fiajfi",
+"customer_phone": "feos",
+"courier": "Adam",
+"status": "Preparing"
+}
+{
+    "orders": [
+        {
+            "customer_name": "vdf",
+            "customer_address": "gfe",
+            "customer_phone": "vdv",
+            "courier": "Harry",
+            "status": "Preparing"
+        }
+    ]
+}
