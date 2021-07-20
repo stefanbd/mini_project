@@ -123,8 +123,23 @@ def menu(category):
                 print("Item ID:", order, "Status:", orders["orders"][order]["status"])
                 
             update_index = input("\nChoose an Item to Update: ")
-            orders["orders"][update_index]["status"] = input("\nEnter New Status: ")
             
+            
+        elif option == sub_menu["Amend Order"]:
+            for order in orders["orders"]:
+                print("Item ID:", order, "Status:", orders["orders"][order]["status"])
+            
+            update_index = input("\nChoose an Item to Update: ")
+            for key, value in orders["orders"][update_index].items():
+                print(f"{key}: {value}")
+                
+            update_field = input("\nChoose a Field to Update: ")
+            orders["orders"][update_index][update_field] = input("\nEnter New Status: ")
+        
+        elif option == sub_menu["Delete Order"]:
+            for order in orders["orders"]:
+                print("Item ID:", order, "Status:", orders["orders"][order]["status"])
+                
         else:
             print("\nInvalid input, try again!")
             continue
