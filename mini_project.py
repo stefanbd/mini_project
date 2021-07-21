@@ -14,41 +14,85 @@ try:
         orders.update(json.load(orders_list))
 
 except Exception as e:
-    print('An error occurred: ' + str(e))
+    print('An error occurred opening external file: ' + str(e))
 
-subMenu = {"menu": {
-    "ordersMenu": {"Main Menu": 0, "View Orders": 1, "Create Order": 2, "Update Order Status": 3, "Amend Order": 4, "Delete Order": 5},
-    
-    "productsMenu": {"Main Menu": 0, "View Products": 1, "Add New Product": 2, "Update Product": 3, "Delete Product": 4},
-    
-    "couriersMenu": {"Main Menu": 0, "View Couriers": 1, "Add New Courier": 2, "Update Courier": 3, "Delete Courier": 4},
+menus = {
+
+    "mainMenus": {
+
+        "Products Menu": 1,
+        "Couriers Menu": 2,
+        "Orders Menu": 3,
+        "Exit": 0},
+
+
+    "subMenus": {
+
+        "productsMenu": {
+            "Main Menu": 0,
+            "View Products": 1,
+            "Add New Product": 2,
+            "Update Product": 3,
+            "Delete Product": 4},
+        
+        "couriersMenu": {
+            "Main Menu": 0,
+            "View Couriers": 1,
+            "Add New Courier": 2,
+            "Update Courier": 3,
+            "Delete Courier": 4},
+
+        "ordersMenu": {
+            "Main Menu": 0,
+            "View Orders": 1,
+            "Create Order": 2,
+            "Update Order Status": 3,
+            "Amend Order": 4,
+            "Delete Order": 5},
     }
 }
-mainMenu = {"Products Menu": 1, "Couriers Menu": 2, "Orders Menu": 3, "Exit": 0}
 
 
-def menu(category):
+def mainmenu():
+    print()
+    for menu, value in menus["mainMenus"].items():
+        print(f"{str(menu)}: {str(value)}")
+    selection = int(input("\nChoose an option: "))
+    if selection == menus["mainMenus"]["Products Menu"]:
+        submenu("products")
+    if selection == menus["mainMenus"]["Couriers Menu"]:
+        submenu("couriers")
+    elif selection == menus["mainMenus"]["Orders Menu"]:
+        submenu("orders")
+    elif selection == menus["mainMenus"]["Exit"]:
+        exit()
+    else:
+        print("\nInvalid input, try again!")
+        return mainmenu()
+
+
+def submenu(category):
     item_list = []
     sub_menu = {}
-    file = ""
+    file = str()
 
     if category == "products":
-        sub_menu = subMenu["menu"]["ordersMenu"]
+        sub_menu = menus["subMenus"]["ordersMenu"]
         file = "products.json"
         item_list = products
 
     elif category == "couriers":
-        sub_menu = subMenu["menu"]["couriersMenu"]
+        sub_menu = menus["subMenus"]["couriersMenu"]
         file = "couriers.json"
         item_list = couriers
         
     elif category == "orders":
-        sub_menu = subMenu["menu"]["ordersMenu"]
+        sub_menu = menus["subMenus"]["ordersMenu"]
         file = "orders.json"
         item_list = orders
 
     else:
-        print("Problem With Menu Selection"), exit()
+        print("Invalid Menu"), exit()
 
     print()
     for key, value in sub_menu.items():
@@ -65,35 +109,52 @@ def menu(category):
 
         option = int(input(f"\nChoose an option: "))
         if option == sub_menu["Main Menu"]:
-            main_menu()
+            mainmenu()
 
-        elif option == sub_menu.get("View Couriers", -0):
+        elif option == sub_menu["View Couriers"]:
             print()
-            for item, key in item_list["couriers"].items():
-                print(item, key)
+            for courier in item_list["couriers"]:
+                print(f"Name: {courier['name']}, Phone: {courier['mobile']}")
             continue
         
-        elif option == sub_menu.get("View Products", -0):
+        elif option == sub_menu["View Products"]:
+            print()
+            for product in item_list["products"]:
+                print(f"Name: {product['name']}, Price: {product['price']}")
             continue
 
-        elif option == sub_menu.get("Add New Courier", -0):
-            item_list.append(input("Enter Name: "))
+        elif option == sub_menu["Add New Courier"]:
+            courierid = str(len(item_list["couriers"])+1)
+            new_courier = {courierid: {
+                "name": input("\nEnter Courier Name: "),
+                "phone:": input("\nEnter Courier Mobile: ")
+            }
+            }
+            item_list["couriers"].update(new_courier)
             continue
         
-        elif option == sub_menu.get("Add New Product", -0):
+        elif option == sub_menu["Add New Product"]:
+
+            productid = str(len(item_list["couriers"]) + 1)
+            new_product = {productid: {
+                "name": input("\nEnter Product Name: "),
+                "price:": input(float("\nEnter Item Price: "))
+            }
+            }
+            item_list["products"].update(new_product)
             continue
 
-        elif option == sub_menu.get("Update Courier", -0):
+        elif option == sub_menu["Update Courier"]:
             for items in item_list:
                 print(f"{items}: {item_list.index(items)}")
             # update_index = (int(input("\nChoose an Item Index to Update: ")))
             item_list[(int(input("\nChoose an Item Index to Update: ")))] = input("Enter New Name: ")
             continue
         
-        elif option == sub_menu.get("Update Product", -0):
+        elif option == sub_menu["Update Product"]:
             continue
 
-        elif option == sub_menu.get("Delete Courier", -0):
+        elif option == sub_menu["Delete Courier"]:
             for item in item_list:
                 print(f"{item}: {item_list.index(item)}")
             delete_index = (map(int, input("\nChoose an Item to Delete\nFor Multiple Items Use a Comma: ").split(",")))
@@ -101,7 +162,7 @@ def menu(category):
                 del item_list[index]
             continue
         
-        elif option == sub_menu.get("Delete Product", -0):
+        elif option == sub_menu["Delete Product"]:
             continue
         
         elif option == sub_menu["Create Order"]:
@@ -116,13 +177,13 @@ def menu(category):
             }
             
             print()
-            for item in couriers:
-                print(f"{item}:", couriers.index(item))
+            for courier in couriers["couriers"]:
+                print(f"ID: {courier}, Name: {courier['name']}")
                 
-            new_order[orderid]["courier"] = couriers[int(input("\nSelect Courier: "))]
+            new_order[orderid]["courier"] = couriers["couriers"]["courierid"][int(input("\nSelect Courier: "))]
             new_order[orderid]["status"] = "Preparing"
 
-            orders["orders"].update(new_order)
+            item_list["orders"].update(new_order)
 
             continue
             
@@ -130,48 +191,35 @@ def menu(category):
             pprint.pprint(orders, sort_dicts=False)
             
         elif option == sub_menu["Update Order Status"]:
-            for order in orders["orders"]:
-                print("Item ID:", order, "Status:", orders["orders"][order]["status"])
-                
+            for order in item_list["orders"]:
+                print(f"OrderID: {order}, Status: {order['status']}")
+
             update_index = input("\nChoose an Item to Update: ")
-            
             
         elif option == sub_menu["Amend Order"]:
-            for order in orders["orders"]:
-                print("Item ID:", order, "Status:", orders["orders"][order]["status"])
+            for order in item_list["orders"]:
+                print("OrderID:", order, "Status:", orders["orders"][order]["status"])
             
-            update_index = input("\nChoose an Item to Update: ")
-            for key, value in orders["orders"][update_index].items():
+            update_index = input("\nChoose an Order to Update: ")
+            for key, value in item_list["orders"][update_index].items():
                 print(f"{key}: {value}")
                 
             update_field = input("\nChoose a Field to Update: ")
-            orders["orders"][update_index][update_field] = input("\nEnter New Status: ")
+            item_list["orders"][update_index][update_field] = input("\nEnter New Status: ")
         
         elif option == sub_menu["Delete Order"]:
-            for order in orders["orders"]:
-                print("Item ID:", order, "Status:", orders["orders"][order]["status"])
+            for order in item_list["orders"]:
+                print("Item ID:", order, "Status:", item_list["orders"][order]["status"])
+
+            delete_index = (map(int, input("\nChoose an OrderID to Delete\nFor Multiple Items Use a Comma: ").split(",")))
+            for index in sorted(delete_index, reverse=True):
+                del item_list["orders"][index]
+                
+            continue
                 
         else:
             print("\nInvalid input, try again!")
             continue
 
 
-def main_menu():
-    print()
-    for key, value in mainMenu.items():
-        print(f"{str(key)}: {str(value)}")
-    selection = int(input("\nChoose an option: "))
-    if selection == mainMenu["Products Menu"]:
-        menu("products")
-    if selection == mainMenu["Couriers Menu"]:
-        menu("couriers")
-    elif selection == mainMenu["Exit"]:
-        exit()
-    elif selection == mainMenu["Orders Menu"]:
-        menu("orders")
-    else: 
-        print("\nInvalid input, try again!")
-        return main_menu()
-
-
-main_menu()
+mainmenu()
