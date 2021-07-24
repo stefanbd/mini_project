@@ -29,26 +29,26 @@ menus = {
     "subMenus": {
 
         "productsMenu": {
-            "Main Menu": 0,
-            "View Products": 1,
-            "Add New Product": 2,
-            "Update Product": 3,
-            "Delete Product": 4},
-        
+            "Main Menu": [0, "mainmenu()"],
+            "View Products": [1, "view_products()"],
+            "Add New Product": [2, "add_product()"],
+            "Update Product": [3, "update_product()"],
+            "Delete Product": [4, "delete_product()"]},
+
         "couriersMenu": {
-            "Main Menu": 0,
-            "View Couriers": 1,
-            "Add New Courier": 2,
-            "Update Courier": 3,
-            "Delete Courier": 4},
+            "Main Menu": [0, "mainmenu()"],
+            "View Couriers": [1, "view_couriers()"],
+            "Add New Courier": [2, "add_courier()"],
+            "Update Courier": [3, "update_courier()"],
+            "Delete Courier": [4, "delete_courier()"]},
 
         "ordersMenu": {
-            "Main Menu": 0,
-            "View Orders": 1,
-            "Create Order": 2,
-            "Update Order Status": 3,
-            "Amend Order": 4,
-            "Delete Order": 5},
+            "Main Menu": [0, "mainmenu()"],
+            "View Orders": [1, "view_orders()"],
+            "Create Order": [2, "create_order()"],
+            "Update Order Status": [3, "update_order_status()"],
+            "Amend Order": [4, "amend_order()"],
+            "Delete Order": [5, "delete_order()"]},
     }
 }
 
@@ -91,11 +91,10 @@ def submenu(category):
     else:
         print("Invalid Menu"), exit()
 
-    choose_sub_menu(sub_menu, item_list, file)
+    choosemenu(sub_menu, item_list, file)
 
 
-def choose_sub_menu(sub_menu, item_list, file):
-
+def choosemenu(sub_menu, item_list, file):
     try:
         with open(file, "w") as entries:
             json.dump(item_list, entries, indent=4)
@@ -104,66 +103,19 @@ def choose_sub_menu(sub_menu, item_list, file):
 
     print()
     for key, value in sub_menu.items():
-        print(f"{str(key)}: {str(value)}")
+        print(f"{str(key)}: {value[0]}")
 
     option = int(input(f"\nChoose an option: "))
 
     for menu in sub_menu:
-        if sub_menu.get(menu(0)) == option:
-            sub_menu[menu][option](1)
-
-    # if option == sub_menu["Main Menu"]:
-    #     mainmenu()
-    # elif option == sub_menu["View Couriers"]:
-    #     view_couriers()
-    # elif option == sub_menu["View Products"]:
-    #     view_products()
-    # elif option == sub_menu["Add New Courier"]:
-    #     add_courier()
-    # elif option == sub_menu["Add New Product"]:
-    #     add_product()
-    # elif option == sub_menu["Update Courier"]:
-    #     update_courier()
-    # # elif option == sub_menu["Update Product"]:
-    # #     update_product()
-    # elif option == sub_menu["Delete Courier"]:
-    #     delete_courier()
-    # # elif option == sub_menu["Delete Product"]:
-    # #     delete_product()
-    # elif option == sub_menu["Create Order"]:
-    #     create_order()
-    # elif option == sub_menu["View Orders"]:
-    #     view_orders()
-    # elif option == sub_menu["Update Order Status"]:
-    #     update_order_status()
-    # elif option == sub_menu["Amend Order"]:
-    #     amend_order()
-    # elif option == sub_menu["Delete Order"]:
-    #     delete_order()
-    # else:
-    #     print("\nInvalid input, try again!")
-
-
-def view_couriers():
-    for courier in couriers["couriers"]:
-        print(f"Name: {courier['name']}, Phone: {courier['mobile']}")
-        return submenu("couriers")
+        if sub_menu[menu][0] == option:
+            eval(sub_menu[menu][1])
 
 
 def view_products():
     for product in products["products"]:
         print(f"Name: {product['name']}, Price: {product['price']}")
         return submenu("products")
-
-
-def add_courier():
-    courierid = str(len(couriers["couriers"])+1)
-    new_courier = {courierid: {
-        "name": input("\nEnter Courier Name: "),
-        "phone:": input("\nEnter Courier Mobile: ")}
-    }
-    couriers["couriers"].update(new_courier)
-    return submenu("couriers")
 
 
 def add_product():
@@ -176,11 +128,44 @@ def add_product():
     return submenu("products")
 
 
+def update_product():
+    return submenu("products")
+
+
+def delete_product():
+    return submenu("products")
+
+
+def view_couriers():
+    for courier in couriers["couriers"]:
+        print(f"Name: {courier['name']}, Phone: {courier['mobile']}")
+        return submenu("couriers")
+
+
+def add_courier():
+    courierid = str(len(couriers["couriers"])+1)
+    new_courier = {courierid: {
+        "name": input("\nEnter Courier Name: "),
+        "phone:": input("\nEnter Courier Mobile: ")}
+    }
+    couriers["couriers"].update(new_courier)
+    return submenu("couriers")
+
+
 def update_courier():
     for courier in couriers["couriers"]:
-        print(f"{courier}: {courier.index(courier)}")
-    update_index = (int(input("\nChoose an Item Index to Update: ")))
-    couriers[(int(input("\nChoose a CourierID to Update: ")))] = input("Enter New Name: ")
+        print(f"{courier}: {couriers['couriers'][courier]['name']} ({couriers['couriers'][courier]['phone']})")
+
+    update_courierid = int(input("\nChoose a CourierID to Update: "))
+
+    i = 1
+    for field in couriers["couriers"][update_courierid]:
+        print(f"{field}: {i}")
+        i += 1
+    update_field = (int(input("\nChoose a Field to Update: ")))
+
+    couriers["couriers"][update_courierid][list(couriers["couriers"][update_courierid])[update_field-1]] = input("\nEnter New Value:")
+    print(f'Courier {update_courierid} {list(couriers["couriers"][update_courierid])[update_field-1]} changed to: {list(couriers["couriers"][update_courierid].values())[update_field-1]}')
     return submenu("couriers")
 
 
@@ -191,6 +176,11 @@ def delete_courier():
     for index in sorted(delete_index, reverse=True):
         del couriers[index]
     return submenu("couriers")
+
+
+def view_orders():
+    pprint.pprint(orders, sort_dicts=False)
+    return submenu("orders")
 
 
 def create_order():
@@ -209,11 +199,6 @@ def create_order():
     new_order[orderid]["status"] = "Preparing"
 
     orders["orders"].update(new_order)
-    return submenu("orders")
-
-
-def view_orders():
-    pprint.pprint(orders, sort_dicts=False)
     return submenu("orders")
 
 
