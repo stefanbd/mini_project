@@ -1,14 +1,16 @@
 import json
 import pprint
+from datetime import datetime
 
 products = {"products": {}}
 couriers = {"couriers": {}}
 orders = {"orders": {}}
 
+
 try:
-    with open('products.json') as products_list:
+    with open("products.json") as products_list:
         products.update(json.load(products_list))   
-    with open('couriers.json') as couriers_list:
+    with open("couriers.json") as couriers_list:
         couriers.update(json.load(couriers_list))
     with open("orders.json") as orders_list:
         orders.update(json.load(orders_list))
@@ -72,7 +74,7 @@ def mainmenu():
 
 
 def submenu(category):
-    item_list = []
+    item_list = {}
     sub_menu = {}
     file = str()
 
@@ -91,10 +93,10 @@ def submenu(category):
     else:
         print("Invalid Menu"), exit()
 
-    choosemenu(sub_menu, item_list, file)
+    return choose_menu(sub_menu, item_list, file)
 
 
-def choosemenu(sub_menu, item_list, file):
+def choose_menu(sub_menu, item_list, file):
     try:
         with open(file, "w") as entries:
             json.dump(item_list, entries, indent=4)
@@ -106,47 +108,70 @@ def choosemenu(sub_menu, item_list, file):
         print(f"{str(key)}: {value[0]}")
 
     option = int(input(f"\nChoose an option: "))
+    print()
 
     for menu in sub_menu:
         if sub_menu[menu][0] == option:
-            eval(sub_menu[menu][1])
+            return eval(sub_menu[menu][1])
 
 
 def view_products():
-    for product in products["products"]:
+    for product in products["products"].values():
         print(f"Name: {product['name']}, Price: {product['price']}")
-        return submenu("products")
+    return submenu("products")
 
 
 def add_product():
-    productid = str(len(products["products"]) + 1)
+    productid = datetime.now().strftime('%Y%m%d%H%M%S')
     new_product = {productid: {
         "name": input("\nEnter Product Name: "),
-        "price:": input(float("\nEnter Item Price: "))}
+        "price": float(input("\nEnter Item Price: "))}
     }
     products["products"].update(new_product)
     return submenu("products")
 
 
 def update_product():
+    for product in products["products"]:
+        print(f"{product}: {products['products'][product]['name']} ({products['products'][product]['price']})")
+
+    update_productid = int(input("\nChoose a Product to Update: "))
+
+    i = 1
+    for field in products["products"][update_productid]:
+        print(f"{field}: {i}")
+        i += 1
+
+    update_field = (int(input("\nChoose a Field to Update: ")))
+
+    products["products"][update_productid][list(products["products"][update_productid])[update_field-1]] = input("\nEnter New Value:")
+    print(f'Products {update_productid} {list(couriers["products"][update_productid])[update_field-1]} changed to: {list(products["products"][update_productid].values())[update_field-1]}')
     return submenu("products")
 
 
 def delete_product():
+    for product in products["products"]:
+        print(f"{products['products'][product]['name']}: {product}")
+
+    delete_index = (map(int, input("\nChoose an Item to Delete\nFor Multiple Items Use a Comma: ").split(",")))
+
+    for index in sorted(delete_index, reverse=True):
+        del products["products"][str(index)]
     return submenu("products")
 
 
 def view_couriers():
-    for courier in couriers["couriers"]:
-        print(f"Name: {courier['name']}, Phone: {courier['mobile']}")
-        return submenu("couriers")
+    for courier in couriers["couriers"].values():
+        print(f"Name: {courier['name']}, Phone: {courier['phone']}")
+    return submenu("couriers")
 
 
 def add_courier():
-    courierid = str(len(couriers["couriers"])+1)
+    courierid = datetime.now().strftime('%Y%m%d%H%M%S')
+
     new_courier = {courierid: {
         "name": input("\nEnter Courier Name: "),
-        "phone:": input("\nEnter Courier Mobile: ")}
+        "phone": input("\nEnter Courier Mobile: ")}
     }
     couriers["couriers"].update(new_courier)
     return submenu("couriers")
@@ -156,12 +181,13 @@ def update_courier():
     for courier in couriers["couriers"]:
         print(f"{courier}: {couriers['couriers'][courier]['name']} ({couriers['couriers'][courier]['phone']})")
 
-    update_courierid = int(input("\nChoose a CourierID to Update: "))
+    update_courierid = int(input("\nChoose a Courier to Update: "))
 
     i = 1
     for field in couriers["couriers"][update_courierid]:
         print(f"{field}: {i}")
         i += 1
+
     update_field = (int(input("\nChoose a Field to Update: ")))
 
     couriers["couriers"][update_courierid][list(couriers["couriers"][update_courierid])[update_field-1]] = input("\nEnter New Value:")
@@ -170,11 +196,13 @@ def update_courier():
 
 
 def delete_courier():
-    for courier in couriers:
-        print(f"{courier}: {couriers.index(courier)}")
+    for courier in couriers["couriers"]:
+        print(f"{couriers['couriers'][courier]['name']}: {courier}")
+
     delete_index = (map(int, input("\nChoose an Item to Delete\nFor Multiple Items Use a Comma: ").split(",")))
+
     for index in sorted(delete_index, reverse=True):
-        del couriers[index]
+        del couriers["couriers"][str(index)]
     return submenu("couriers")
 
 
@@ -184,13 +212,14 @@ def view_orders():
 
 
 def create_order():
-    orderid = str(len(orders["orders"])+1).zfill(5)
+    # orderid = str(len(orders["orders"])+1).zfill(5)
+    orderid = datetime.now().strftime('%Y%m%d%H%M%S')
 
     new_order = {
-                orderid: {
-                    "customer_name": input("\nEnter Customer Name: "),
-                    "customer_address": input("\nEnter Customer Address: "),
-                    "customer_phone": input("\nEnter Customer Phone: "), }
+        orderid: {
+            "customer_name": input("\nEnter Customer Name: "),
+            "customer_address": input("\nEnter Customer Address: "),
+            "customer_phone": input("\nEnter Customer Phone: "), }
     }
     print()
     for courier in couriers["couriers"]:
@@ -214,12 +243,19 @@ def amend_order():
     for order in orders["orders"]:
         print("OrderID:", order, "Status:", orders["orders"][order]["status"])
 
-    update_index = input("\nChoose an Order to Update: ")
-    for key, value in orders["orders"][update_index].items():
-        print(f"{key}: {value}")
+    update_orderid = input("\nChoose an Order to Update: ")
 
-    update_field = input("\nChoose a Field to Update: ")
-    orders["orders"][update_index][update_field] = input("\nEnter New Status: ")
+    i = 1
+    for field in orders["orders"][update_orderid]:
+        print(f"{field}: {i}")
+        i += 1
+
+    update_field = int(input("\nChoose a Field to Update: "))
+
+    orders["orders"][update_orderid][list(orders["orders"][update_orderid])[update_field - 1]] = input(
+        "\nEnter New Value:")
+    print(
+        f'Courier {update_orderid} {list(orders["orders"][update_orderid])[update_field - 1]} changed to: {list(orders["orders"][update_orderid].values())[update_field - 1]}')
     return submenu("orders")
 
 
@@ -229,7 +265,7 @@ def delete_order():
 
     delete_index = (map(int, input("\nChoose an OrderID to Delete\nFor Multiple Orders Use a Comma: ").split(",")))
     for index in sorted(delete_index, reverse=True):
-        del orders["orders"][index]
+        del orders["orders"][str(index)]
     return submenu("orders")
 
 
