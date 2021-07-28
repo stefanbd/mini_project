@@ -123,10 +123,13 @@ def view_products():
 
 def add_product():
     productid = datetime.now().strftime('%Y%m%d%H%M%S')
-    new_product = {productid: {
-        "name": input("\nEnter Product Name: "),
-        "price": float(input("\nEnter Item Price: "))}
+
+    new_product = {
+        productid: {
+            "name": input("\nEnter Product Name: "),
+            "price": float(input("\nEnter Item Price: "))}
     }
+
     products["products"].update(new_product)
     return submenu("products")
 
@@ -169,9 +172,10 @@ def view_couriers():
 def add_courier():
     courierid = datetime.now().strftime('%Y%m%d%H%M%S')
 
-    new_courier = {courierid: {
-        "name": input("\nEnter Courier Name: "),
-        "phone": input("\nEnter Courier Mobile: ")}
+    new_courier = {
+        courierid: {
+            "name": input("\nEnter Courier Name: "),
+            "phone": input("\nEnter Courier Mobile: ")}
     }
     couriers["couriers"].update(new_courier)
     return submenu("couriers")
@@ -223,8 +227,8 @@ def create_order():
     }
     print()
     for courier in couriers["couriers"]:
-        print(f"ID: {courier}, Name: {courier['name']}")
-    new_order[orderid]["courier"] = couriers["couriers"]["courierid"][int(input("\nSelect Courier: "))]
+        print(f"ID: {courier}, Name: {couriers['couriers'][courier]['name']}")
+    new_order[orderid]["courier"] = input("\nSelect CourierID: ")
     new_order[orderid]["status"] = "Preparing"
 
     orders["orders"].update(new_order)
@@ -232,10 +236,10 @@ def create_order():
 
 
 def update_order_status():
-    for order in orders["orders"]:
-        print(f"OrderID: {order}, Status: {order['status']}")
-
-    update_index = input("\nChoose an Item to Update: ")
+    # for order in orders["orders"]:
+    #     print(f"OrderID: {order}, Status: {order['status']}")
+    #
+    # update_index = input("\nChoose an Item to Update: ")
     return submenu("orders")
 
 
@@ -246,6 +250,7 @@ def amend_order():
     update_orderid = input("\nChoose an Order to Update: ")
 
     i = 1
+    print()
     for field in orders["orders"][update_orderid]:
         print(f"{field}: {i}")
         i += 1
