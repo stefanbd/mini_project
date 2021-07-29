@@ -1,10 +1,9 @@
 import json
 import pprint
-from datetime import datetime
 
-products = {"products": {}}
-couriers = {"couriers": {}}
-orders = {"orders": {}}
+products = {"products": {}, "pid": 1}
+couriers = {"couriers": {}, "cid": 1}
+orders = {"orders": {}, "oid": 1}
 
 
 try:
@@ -122,7 +121,7 @@ def view_products():
 
 
 def add_product():
-    productid = datetime.now().strftime('%Y%m%d%H%M%S')
+    productid = products["pid"]
 
     new_product = {
         productid: {
@@ -131,6 +130,7 @@ def add_product():
     }
 
     products["products"].update(new_product)
+    products["pid"] += 1
     return submenu("products")
 
 
@@ -170,7 +170,7 @@ def view_couriers():
 
 
 def add_courier():
-    courierid = datetime.now().strftime('%Y%m%d%H%M%S')
+    courierid = couriers["cid"]
 
     new_courier = {
         courierid: {
@@ -178,6 +178,7 @@ def add_courier():
             "phone": input("\nEnter Courier Mobile: ")}
     }
     couriers["couriers"].update(new_courier)
+    couriers["cid"] += 1
     return submenu("couriers")
 
 
@@ -216,8 +217,7 @@ def view_orders():
 
 
 def create_order():
-    # orderid = str(len(orders["orders"])+1).zfill(5)
-    orderid = datetime.now().strftime('%Y%m%d%H%M%S')
+    orderid = orders["oid"]
 
     new_order = {
         orderid: {
@@ -232,6 +232,7 @@ def create_order():
     new_order[orderid]["status"] = "Preparing"
 
     orders["orders"].update(new_order)
+    orders["oid"] += 1
     return submenu("orders")
 
 
