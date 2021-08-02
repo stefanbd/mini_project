@@ -1,7 +1,5 @@
 import json
 import pprint
-# import pymysql
-# import os
 
 products = {"products": {}, "pid": 1}
 couriers = {"couriers": {}, "cid": 1}
@@ -87,9 +85,9 @@ def submenu(category):
         sub_menu = menus["subMenus"]["couriersMenu"]
         file = "data/couriers.json"
         item_list = couriers
-    elif category == "data/orders":
+    elif category == "orders":
         sub_menu = menus["subMenus"]["ordersMenu"]
-        file = "orders.json"
+        file = "data/orders.json"
         item_list = orders
     else:
         exit()
