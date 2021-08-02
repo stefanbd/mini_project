@@ -235,10 +235,6 @@ def create_order():
 
 
 # def update_order_status():
-#     # for order in orders["orders"]:
-#     #     print(f"OrderID: {order}, Status: {order['status']}")
-#     #
-#     # update_index = input("\nChoose an Item to Update: ")
 #     return submenu("orders")
 
 
