@@ -1,0 +1,9 @@
+.DS_Store
+.idea/
+.venv/
+tests/
+playground.py
+old_mini_project.py
+orders.json
+products.json
+couriers.json
