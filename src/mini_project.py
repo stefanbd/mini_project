@@ -1,26 +1,12 @@
-import json
-import pprint
+import pymysql
 
-products = {"products": {}, "pid": 1}
-couriers = {"couriers": {}, "cid": 1}
-orders = {"orders": {}, "oid": 1}
-
-
-try:
-    with open("data/products.json") as products_list:
-        products.update(json.load(products_list))
-    with open("data/couriers.json") as couriers_list:
-        couriers.update(json.load(couriers_list))
-    with open("data/orders.json") as orders_list:
-        orders.update(json.load(orders_list))
-
-except Exception as e:
-    print('An error occurred opening external file: ' + str(e))
+db = {"products": [("ID", "product_id"), ("NAME", "product_name"), ("PRICE", "product_price")],
+      "couriers": [("ID", "courier_id"), ("NAME", "courier_name"), ("PHONE", "courier_phone")],
+      "orders": [("ID", "order_id"), ("CUSTOMER NAME", "customer_name"), ("CUSTOMER SURNAME", "customer_surname"),
+                 ("CUSTOMER ADDRESS", "customer_address"), ("COURIER", "courier_id"), ("STATUS", "order_status")]}
 
 menus = {
-
     "mainMenus": {
-
         "Products Menu": 1,
         "Couriers Menu": 2,
         "Orders Menu": 3,
@@ -28,7 +14,6 @@ menus = {
 
 
     "subMenus": {
-
         "productsMenu": {
             "Main Menu": [0, "mainmenu()"],
             "View Products": [1, "view_products()"],
@@ -45,13 +30,23 @@ menus = {
 
         "ordersMenu": {
             "Main Menu": [0, "mainmenu()"],
-            "View Orders": [1, "view_orders()"],
+            "View Orders": [1, "view_orders()", {"ID": 1, "Courier": 2, "Status": 3}],
             "Create Order": [2, "create_order()"],
             "Update Order Status": [3, "update_order_status()"],
             "Amend Order": [4, "amend_order()"],
             "Delete Order": [5, "delete_order()"]},
     }
 }
+
+connection = pymysql.connect(host="127.0.0.1", user="stefan", password="pass", database="store", port=33060)
+cursor = connection.cursor()
+
+
+def save(sql):
+    for item in sql:
+        print(item)
+        cursor.execute(item)
+    connection.commit()
 
 
 def mainmenu():
@@ -66,6 +61,8 @@ def mainmenu():
     if selection == menus["mainMenus"]["Orders Menu"]:
         return submenu("orders")
     if selection == menus["mainMenus"]["Exit"]:
+        cursor.close()
+        connection.close()
         return exit()
     else:
         print("\nInvalid input, try again!")
@@ -73,35 +70,20 @@ def mainmenu():
 
 
 def submenu(category):
-    item_list = {}
-    sub_menu = {}
-    file = str()
-
     if category == "products":
         sub_menu = menus["subMenus"]["productsMenu"]
-        file = "data/products.json"
-        item_list = products
     elif category == "couriers":
         sub_menu = menus["subMenus"]["couriersMenu"]
-        file = "data/couriers.json"
-        item_list = couriers
     elif category == "orders":
         sub_menu = menus["subMenus"]["ordersMenu"]
-        file = "data/orders.json"
-        item_list = orders
     else:
+        cursor.close()
+        connection.close()
         exit()
+    return choose_menu(sub_menu)
 
-    return choose_menu(sub_menu, item_list, file)
 
-
-def choose_menu(sub_menu, item_list, file):
-    try:
-        with open(file, "w") as entries:
-            json.dump(item_list, entries, indent=4)
-    except Exception as ex:
-        print('An error occurred writing to external file: ' + str(ex))
-
+def choose_menu(sub_menu):
     print()
     for key, value in sub_menu.items():
         print(f"{str(key)}: {value[0]}")
@@ -113,157 +95,211 @@ def choose_menu(sub_menu, item_list, file):
         if sub_menu[menu][0] == option:
             return eval(sub_menu[menu][1])
 
-        return exit()
-
 
 def view_products():
-    for product in products["products"].values():
-        print(f"Name: {product['name']}, Price: {product['price']}")
+    cursor.execute('SELECT * FROM products')
+    rows = cursor.fetchall()
+    for row in rows:
+        print(f'ID: {row[0]} | NAME: {row[1]} | PRICE: {row[2]}')
     return submenu("products")
 
 
 def add_product():
-    productid = products["pid"]
+    name = input("\nEnter Product Name: ")
+    price = float(input("\nEnter Item Price: "))
+    val = (name, price)
 
-    new_product = {
-        productid: {
-            "name": input("\nEnter Product Name: "),
-            "price": float(input("\nEnter Item Price: "))}
-    }
-
-    products["products"].update(new_product)
-    products["pid"] += 1
+    sql = f"INSERT INTO products (product_name,product_price) VALUES {val}",
+    save(sql)
     return submenu("products")
 
 
 def update_product():
-    for product in products["products"]:
-        print(f"{product}: {products['products'][product]['name']} ({products['products'][product]['price']})")
+    cursor.execute('SELECT * FROM products')
+    rows = cursor.fetchall()
+    for row in rows:
+        print(f'ID: {row[0]} | NAME: {row[1]} | PRICE: {row[2]}')
 
-    update_productid = input("\nChoose a Product to Update: ")
+    update_productid = int(input("\nChoose a ProductID to Update: "))
+    print()
 
-    for i, field in enumerate(products["products"][update_productid], start=1):
-        print(f"{i}: {field}")
+    for index, value in enumerate(db["products"][1:], start=1):
+        print(f"{index}: {value[0]}")
 
     update_field = (int(input("\nChoose a Field to Update: ")))
-
-    products["products"][update_productid][list(products["products"][update_productid])[update_field-1]] = input("\nEnter New Value:")
-    print(f'Products {update_productid} {list(products["products"][update_productid])[update_field-1]} changed to: {list(products["products"][update_productid].values())[update_field-1]}')
+    print()
+    sql = f" UPDATE products SET {db['products'][(update_field)][1]} = '{input('Enter New Value: ')}' WHERE product_id = {update_productid}",
+    save(sql)
     return submenu("products")
 
 
 def delete_product():
-    for product in products["products"]:
-        print(f"{products['products'][product]['name']}: {product}")
+    sql = ()
 
-    delete_index = (map(int, input("\nChoose an Item to Delete\nFor Multiple Items Use a Comma: ").split(",")))
+    cursor.execute('SELECT * FROM products')
+    rows = cursor.fetchall()
+    for row in rows:
+        print(f'ID: {row[0]} | NAME: {row[1]} | PRICE: {row[2]}')
+
+    delete_index = (map(int, input("\nChoose a ProductID to Delete\nFor Multiple Items Use a Comma: ").split(",")))
 
     for index in sorted(delete_index, reverse=True):
-        del products["products"][str(index)]
+        sql += f"DELETE FROM products WHERE product_id = {index}",
+    save(sql)
     return submenu("products")
 
 
 def view_couriers():
-    for courier in couriers["couriers"].values():
-        print(f"Name: {courier['name']}, Phone: {courier['phone']}")
+    cursor.execute('SELECT * FROM couriers')
+    rows = cursor.fetchall()
+    for row in rows:
+        print(f'ID: {row[0]} | NAME: {row[1]} | PHONE: {row[2]}')
     return submenu("couriers")
 
 
 def add_courier():
-    courierid = couriers["cid"]
+    name = input("\nEnter Courier Name: ")
+    phone = input("\nEnter Courier Phone: ")
+    val = (name, phone)
 
-    new_courier = {
-        courierid: {
-            "name": input("\nEnter Courier Name: "),
-            "phone": input("\nEnter Courier Mobile: ")}
-    }
-    couriers["couriers"].update(new_courier)
-    couriers["cid"] += 1
+    sql = f"INSERT INTO couriers (courier_name, courier_phone) VALUES {val}",
+    save(sql)
     return submenu("couriers")
 
 
 def update_courier():
-    for courier in couriers["couriers"]:
-        print(f"{courier}: {couriers['couriers'][courier]['name']} ({couriers['couriers'][courier]['phone']})")
+    cursor.execute('SELECT * FROM couriers')
+    rows = cursor.fetchall()
+    for row in rows:
+        print(f'ID: {row[0]} | NAME: {row[1]} | PHONE: {row[2]}')
 
-    update_courierid = input("\nChoose a Courier to Update: ")
+    update_courierid = int(input("\nChoose a CourierID to Update: "))
+    print()
 
-    for i, field in enumerate(couriers["couriers"][update_courierid], start=1):
-        print(f"{i}: {field}")
+    for index, value in enumerate(db["couriers"][1:], start=1):
+        print(f"{index}: {value[0]}")
 
     update_field = (int(input("\nChoose a Field to Update: ")))
-
-    couriers["couriers"][update_courierid][list(couriers["couriers"][update_courierid])[update_field-1]] = input("\nEnter New Value:")
-    print(f'Courier {update_courierid} {list(couriers["couriers"][update_courierid])[update_field-1]} changed to: {list(couriers["couriers"][update_courierid].values())[update_field-1]}')
+    print()
+    sql = f" UPDATE products SET {db['couriers'][(update_field)][1]} = '{input('Enter New Value: ')}' WHERE courier_id = {update_courierid}",
+    save(sql)
     return submenu("couriers")
 
 
 def delete_courier():
-    for courier in couriers["couriers"]:
-        print(f"{couriers['couriers'][courier]['name']}: {courier}")
+    sql = ()
 
-    delete_index = (map(int, input("\nChoose an Item to Delete\nFor Multiple Items Use a Comma: ").split(",")))
+    cursor.execute('SELECT * FROM couriers')
+    rows = cursor.fetchall()
+    for row in rows:
+        print(f'ID: {row[0]} | NAME: {row[1]} | PHONE: {row[2]}')
+
+    delete_index = (map(int, input("\nChoose a CourierID to Delete\nFor Multiple Items Use a Comma: ").split(",")))
 
     for index in sorted(delete_index, reverse=True):
-        del couriers["couriers"][str(index)]
+        sql += f"DELETE FROM couriers WHERE courier_id = {index}",
+        save(sql)
     return submenu("couriers")
 
 
 def view_orders():
-    pprint.pprint(orders, sort_dicts=False)
+    for key, value in menus["subMenus"]["ordersMenu"]["View Orders"][2].items():
+        print(f"{key}: {value}")
+    print()
+    val = int(input("Sort By: "))
+    print()
+
+    if val == menus["subMenus"]["ordersMenu"]["View Orders"][2]["ID"]:
+        cursor.execute('SELECT * FROM orders ORDER BY order_id')
+        rows = cursor.fetchall()
+        for row in rows:
+            print(f'ID: {row[0]} | CUSTOMER: {row[1]} {row[2]} | ADDRESS: {row[3]} | COURIER: {row[4]} | STATUS: {row[5]}')
+    elif val == menus["subMenus"]["ordersMenu"]["View Orders"][2]["Courier"]:
+        cursor.execute('SELECT * FROM orders ORDER BY courier_id')
+        rows = cursor.fetchall()
+        for row in rows:
+            print(
+                f'ID: {row[0]} | CUSTOMER: {row[1]} {row[2]} | ADDRESS: {row[3]} | COURIER: {row[4]} | STATUS: {row[5]}')
+    elif val == menus["subMenus"]["ordersMenu"]["View Orders"][2]["Status"]:
+        cursor.execute('SELECT * FROM orders ORDER BY order_status')
+        rows = cursor.fetchall()
+        for row in rows:
+            print(
+                f'ID: {row[0]} | CUSTOMER: {row[1]} {row[2]} | ADDRESS: {row[3]} | COURIER: {row[4]} | STATUS: {row[5]}')
     return submenu("orders")
 
 
 def create_order():
-    orderid = orders["oid"]
+    customer_name = input("\nEnter Customer Name: ")
+    customer_surname = input("\nEnter Customer Surname: ")
+    customer_address = input("\nEnter Customer Address: ")
 
-    new_order = {
-        orderid: {
-            "customer_name": input("\nEnter Customer Name: "),
-            "customer_address": input("\nEnter Customer Address: "),
-            "customer_phone": input("\nEnter Customer Phone: "), }
-    }
+    cursor.execute('SELECT * FROM couriers')
+    rows = cursor.fetchall()
     print()
-    for courier in couriers["couriers"]:
-        print(f"ID: {courier}, Name: {couriers['couriers'][courier]['name']}")
-    new_order[orderid]["courier"] = input("\nSelect CourierID: ")
-    new_order[orderid]["status"] = "Preparing"
+    for row in rows:
+        print(f'ID: {row[0]} | NAME: {row[1]} | PHONE: {row[2]}')
 
-    orders["orders"].update(new_order)
-    orders["oid"] += 1
+    order_courier = int(input("\nEnter Order CourierID: "))
+    order_status = "Preparing"
+
+    val = (customer_name, customer_surname, customer_address, order_courier, order_status)
+    sql = f"INSERT INTO orders (customer_name, customer_surname, customer_address, courier_id, order_status) VALUES {val}",
+
+    save(sql)
     return submenu("orders")
 
 
 # def update_order_status():
+
 #     return submenu("orders")
 
 
 def amend_order():
-    for order in orders["orders"]:
-        print("OrderID:", order, "Status:", orders["orders"][order]["status"])
+    cursor.execute('SELECT * FROM orders')
+    rows = cursor.fetchall()
+    for row in rows:
+        print(f'ID: {row[0]} | CUSTOMER: {row[1]} {row[2]} | ADDRESS: {row[3]} | COURIER: {row[4]} | STATUS: {row[5]}')
 
-    update_orderid = input("\nChoose an Order to Update: ")
-
+    update_orderid = int(input("\nChoose an OrderID to Update: "))
     print()
-    for i, field in enumerate(orders["orders"][update_orderid]):
-        print(f"{i}: {field}")
-    update_field = int(input("\nChoose a Field to Update: "))
 
-    orders["orders"][update_orderid][list(orders["orders"][update_orderid])[update_field - 1]] = input(
-        "\nEnter New Value:")
-    print(
-        f'Courier {update_orderid} {list(orders["orders"][update_orderid])[update_field - 1]} changed to: {list(orders["orders"][update_orderid].values())[update_field - 1]}')
+    for index, value in enumerate(db["orders"][1:], start=1):
+        print(f"{index}: {value[0]}")
+
+    update_field = (int(input("\nChoose a Field to Update: ")))
+
+    if db['orders'][update_field] == "COURIER":
+        print()
+        cursor.execute('SELECT * FROM couriers')
+        rows = cursor.fetchall()
+        for row in rows:
+            print(f'ID: {row[0]} | NAME: {row[1]} | PHONE: {row[2]}')
+
+        sql = f" UPDATE orders SET {db['orders'][(update_field)][1]} = '{input('Enter New Courier: ')}' WHERE order_id = {update_orderid}",
+    else:
+        sql = f" UPDATE orders SET {db['orders'][(update_field)][1]} = '{input('Enter New Value: ')}' WHERE order_id = {update_orderid}",
+
+    save(sql)
     return submenu("orders")
+
 
 
 def delete_order():
-    for order in orders["orders"]:
-        print("Item ID:", order, "Status:", orders["orders"][order]["status"])
+    sql = ()
 
-    delete_index = (map(int, input("\nChoose an OrderID to Delete\nFor Multiple Orders Use a Comma: ").split(",")))
+    cursor.execute('SELECT * FROM orders')
+    rows = cursor.fetchall()
+    for row in rows:
+        print(f'ID: {row[0]} | CUSTOMER: {row[1]} {row[2]} | ADDRESS: {row[3]} | COURIER: {row[4]} | STATUS: {row[5]}')
+
+    delete_index = (map(int, input("\nChoose an OrderID to Delete\nFor Multiple Items Use a Comma: ").split(",")))
+
     for index in sorted(delete_index, reverse=True):
-        del orders["orders"][str(index)]
+        sql += f"DELETE FROM orders WHERE order_id = {index}",
+        save(sql)
     return submenu("orders")
+
 
 
 mainmenu()
