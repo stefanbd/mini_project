@@ -11,8 +11,7 @@ menus = {
         "Couriers Menu": 2,
         "Orders Menu": 3,
         "Exit": 0},
-
-
+    
     "subMenus": {
         "productsMenu": {
             "Main Menu": [0, "mainmenu()"],
@@ -20,14 +19,14 @@ menus = {
             "Add New Product": [2, "add_product()"],
             "Update Product": [3, "update_product()"],
             "Delete Product": [4, "delete_product()"]},
-
+        
         "couriersMenu": {
             "Main Menu": [0, "mainmenu()"],
             "View Couriers": [1, "view_couriers()"],
             "Add New Courier": [2, "add_courier()"],
             "Update Courier": [3, "update_courier()"],
             "Delete Courier": [4, "delete_courier()"]},
-
+        
         "ordersMenu": {
             "Main Menu": [0, "mainmenu()"],
             "View Orders": [1, "view_orders()", {"ID": 1, "Courier": 2, "Status": 3}],
@@ -43,17 +42,33 @@ cursor = connection.cursor()
 
 
 def save(sql):
-    for item in sql:
-        print(item)
-        cursor.execute(item)
-    connection.commit()
+    try:
+        for item in sql:
+            # print(item)
+            cursor.execute(item)
+        connection.commit()
+    except Exception as e:
+        print('Error writing to database: ' + str(e))
+
+
+# def chooseint():
+#     try:
+#         selection = int(input("\nChoose an option: "))
+#     except ValueError:
+#         print("\nOnly whole numbers allowed.")
 
 
 def mainmenu():
     print()
     for menu, value in menus["mainMenus"].items():
         print(f"{str(menu)}: {str(value)}")
-    selection = int(input("\nChoose an option: "))
+        
+    try:
+        selection = int(input("\nChoose an option: "))
+    except ValueError:
+        print("\nOnly whole numbers allowed.")
+        mainmenu()
+        
     if selection == menus["mainMenus"]["Products Menu"]:
         return submenu("products")
     if selection == menus["mainMenus"]["Couriers Menu"]:
@@ -65,7 +80,7 @@ def mainmenu():
         connection.close()
         return exit()
     else:
-        print("\nInvalid input, try again!")
+        print("\nInvalid input, try again.")
         return mainmenu()
 
 
@@ -88,12 +103,19 @@ def choose_menu(sub_menu):
     for key, value in sub_menu.items():
         print(f"{str(key)}: {value[0]}")
 
-    option = int(input("\nChoose an option: "))
-    print()
+    try:
+        option = int(input("\nChoose an option: "))
+        print()
+    except ValueError:
+        print("\nOnly whole numbers allowed.")
+        choose_menu(sub_menu)
 
     for menu in sub_menu:
         if sub_menu[menu][0] == option:
             return eval(sub_menu[menu][1])
+    else:
+        print("Invalid input, try again.")
+        return choose_menu(sub_menu)
 
 
 def view_products():
@@ -105,7 +127,7 @@ def view_products():
 
 
 def add_product():
-    name = input("\nEnter Product Name: ")
+    name = input("Enter Product Name: ")
     price = float(input("\nEnter Item Price: "))
     val = (name, price)
 
@@ -128,7 +150,7 @@ def update_product():
 
     update_field = (int(input("\nChoose a Field to Update: ")))
     print()
-    sql = f" UPDATE products SET {db['products'][(update_field)][1]} = '{input('Enter New Value: ')}' WHERE product_id = {update_productid}",
+    sql = f" UPDATE products SET {db['products'][update_field][1]} = '{input('Enter New Value: ')}' WHERE product_id = {update_productid}",
     save(sql)
     return submenu("products")
 
@@ -158,7 +180,7 @@ def view_couriers():
 
 
 def add_courier():
-    name = input("\nEnter Courier Name: ")
+    name = input("Enter Courier Name: ")
     phone = input("\nEnter Courier Phone: ")
     val = (name, phone)
 
@@ -181,7 +203,7 @@ def update_courier():
 
     update_field = (int(input("\nChoose a Field to Update: ")))
     print()
-    sql = f" UPDATE products SET {db['couriers'][(update_field)][1]} = '{input('Enter New Value: ')}' WHERE courier_id = {update_courierid}",
+    sql = f" UPDATE couriers SET {db['couriers'][update_field][1]} = '{input('Enter New Value: ')}' WHERE courier_id = {update_courierid}",
     save(sql)
     return submenu("couriers")
 
@@ -198,7 +220,7 @@ def delete_courier():
 
     for index in sorted(delete_index, reverse=True):
         sql += f"DELETE FROM couriers WHERE courier_id = {index}",
-        save(sql)
+    save(sql)
     return submenu("couriers")
 
 
@@ -226,11 +248,14 @@ def view_orders():
         for row in rows:
             print(
                 f'ID: {row[0]} | CUSTOMER: {row[1]} {row[2]} | ADDRESS: {row[3]} | COURIER: {row[4]} | STATUS: {row[5]}')
+    else:
+        print("\nInvalid input, try again!")
+        return view_orders()
     return submenu("orders")
 
 
 def create_order():
-    customer_name = input("\nEnter Customer Name: ")
+    customer_name = input("Enter Customer Name: ")
     customer_surname = input("\nEnter Customer Surname: ")
     customer_address = input("\nEnter Customer Address: ")
 
@@ -276,13 +301,12 @@ def amend_order():
         for row in rows:
             print(f'ID: {row[0]} | NAME: {row[1]} | PHONE: {row[2]}')
 
-        sql = f" UPDATE orders SET {db['orders'][(update_field)][1]} = '{input('Enter New Courier: ')}' WHERE order_id = {update_orderid}",
+        sql = f" UPDATE orders SET {db['orders'][update_field][1]} = '{input('Enter New Courier: ')}' WHERE order_id = {update_orderid}",
     else:
-        sql = f" UPDATE orders SET {db['orders'][(update_field)][1]} = '{input('Enter New Value: ')}' WHERE order_id = {update_orderid}",
+        sql = f" UPDATE orders SET {db['orders'][update_field][1]} = '{input('Enter New Value: ')}' WHERE order_id = {update_orderid}",
 
     save(sql)
     return submenu("orders")
-
 
 
 def delete_order():
@@ -297,9 +321,8 @@ def delete_order():
 
     for index in sorted(delete_index, reverse=True):
         sql += f"DELETE FROM orders WHERE order_id = {index}",
-        save(sql)
+    save(sql)
     return submenu("orders")
-
 
 
 mainmenu()
