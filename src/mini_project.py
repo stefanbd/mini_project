@@ -1,9 +1,10 @@
 import pymysql
 
-db = {"products": [("ID", "product_id"), ("NAME", "product_name"), ("PRICE", "product_price")],
-      "couriers": [("ID", "courier_id"), ("NAME", "courier_name"), ("PHONE", "courier_phone")],
-      "orders": [("ID", "order_id"), ("CUSTOMER NAME", "customer_name"), ("CUSTOMER SURNAME", "customer_surname"),
-                 ("CUSTOMER ADDRESS", "customer_address"), ("COURIER", "courier_id"), ("STATUS", "order_status")]}
+db = {
+    "products": [("ID", "product_id"), ("NAME", "product_name"), ("PRICE", "product_price")],
+    "couriers": [("ID", "courier_id"), ("NAME", "courier_name"), ("PHONE", "courier_phone")],
+    "orders": [("ID", "order_id"), ("CUSTOMER NAME", "customer_name"), ("CUSTOMER SURNAME", "customer_surname"),
+        ("CUSTOMER ADDRESS", "customer_address"), ("COURIER", "courier_id"), ("STATUS", "order_status")]}
 
 menus = {
     "mainMenus": {
@@ -44,7 +45,6 @@ cursor = connection.cursor()
 def save(sql):
     try:
         for item in sql:
-            # print(item)
             cursor.execute(item)
         connection.commit()
     except Exception as e:
